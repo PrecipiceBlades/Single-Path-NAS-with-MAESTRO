@@ -29,7 +29,7 @@ def profile_blockargs(blocks_string, input_size):
 
     output_size = input_size
     layers = []
-    for r in range(options["num_repeat"]):
+    for key, r in enumerate(range(options["num_repeat"])):
         layer_type1, input_size, kernel_size, stride, expansion, out_channels = "conv2d", output_size, 1, (1, 1), options["expansion"], options["input_filters"]
         output_size, nb_params, R, S = torch_util.get_conv_output_size_and_nb_param(input_size, layer_type1, kernel_size, stride, expansion, out_channels)
         layers.append(tuple((layer_type1, input_size, output_size, stride, nb_params, R, S)))
@@ -39,6 +39,8 @@ def profile_blockargs(blocks_string, input_size):
         layer_type3, input_size, kernel_size, stride, out_channels = "conv2d", output_size, 1, (1, 1), options["output_filters"]
         output_size, nb_params, R, S = torch_util.get_conv_output_size_and_nb_param(input_size, layer_type3, kernel_size, stride, out_channels=out_channels)
         layers.append(tuple((layer_type3, input_size, output_size, stride, nb_params, R, S)))
+        if key == 0:
+            options["stride"] = 1
     return layers, output_size
 
 profiled_layers = []
