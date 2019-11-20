@@ -45,3 +45,53 @@ def get_conv_output_size_and_nb_param(input_size, layer_type, kernel_size, strid
 def get_linear_output_size_and_nb_param(in_features, out_features):
     params = in_features * out_features
     return tuple((out_features, )), params, out_features, in_features
+
+
+class AverageMeter(object):
+    """Computes and stores the average and current value"""
+    def __init__(self):
+        self.reset()
+
+    def reset(self):
+        self.val   = 0
+        self.avg   = 0
+        self.sum   = 0
+        self.count = 0
+
+    def update(self, val, n = 1):
+        self.val   = val
+        self.sum   += val * n
+        self.count += n
+        self.avg   = self.sum / self.count
+
+
+def accuracy(output, target, topk=(1,)):
+    """Computes the precision@k for the specified values of k"""
+    maxk = max(topk)
+    batch_size = target.size(0)
+
+    _, pred = output.topk(maxk, 1, True, True)
+    pred    = pred.t()
+    correct = pred.eq(target.view(1, -1).expand_as(pred))
+
+    res = []
+    for k in topk:
+        correct_k = correct[:k].view(-1).float().sum(0)
+        res.append(correct_k.mul_(100.0 / batch_size))
+
+    return res
+
+class LabelSmoothing(nn.Module):
+    def __init__(self, size, smoothing=0.0):
+        super(LabelSmoothing, self).__init__()
+        self.criterion = nn.KLDivLoss(size_average=False)
+        self.confidence = 1.0 - smoothing
+        self.smoothing = smoothing
+        self.true_dist = None
+        
+    def forward(self, x, target):
+        true_dist = x.data.clone()
+        true_dist.fill_(self.smoothing / (x.size(1) - 1))
+        true_dist.scatter_(1, target.data.unsqueeze(1), self.confidence)
+        self.true_dist = true_dist
+        return self.criterion(x, Variable(true_dist, requires_grad=False))
