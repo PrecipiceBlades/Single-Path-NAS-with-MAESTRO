@@ -2,7 +2,7 @@ import torch
 from torch.autograd import Variable
 import torch.nn as nn
 import torch.nn.functional as F
-import torch_util
+import util
 from maestro_summary import summary
 import re
 from collections import OrderedDict
@@ -31,13 +31,13 @@ def profile_blockargs(blocks_string, input_size):
     layers = []
     for key, r in enumerate(range(options["num_repeat"])):
         layer_type1, input_size, kernel_size, stride, expansion, out_channels = "conv2d", output_size, 1, (1, 1), options["expansion"], options["input_filters"]
-        output_size, nb_params, R, S = torch_util.get_conv_output_size_and_nb_param(input_size, layer_type1, kernel_size, stride, expansion, out_channels)
+        output_size, nb_params, R, S = util.get_conv_output_size_and_nb_param(input_size, layer_type1, kernel_size, stride, expansion, out_channels)
         layers.append(tuple((layer_type1, input_size, output_size, stride, nb_params, R, S)))
         layer_type2, input_size, kernel_size, stride = "depthwise", output_size, options["kernel_size"], options["stride"]
-        output_size, nb_params, R, S = torch_util.get_conv_output_size_and_nb_param(input_size, layer_type2, kernel_size, stride)
+        output_size, nb_params, R, S = util.get_conv_output_size_and_nb_param(input_size, layer_type2, kernel_size, stride)
         layers.append(tuple((layer_type2, input_size, output_size, stride, nb_params, R, S)))
         layer_type3, input_size, kernel_size, stride, out_channels = "conv2d", output_size, 1, (1, 1), options["output_filters"]
-        output_size, nb_params, R, S = torch_util.get_conv_output_size_and_nb_param(input_size, layer_type3, kernel_size, stride, out_channels=out_channels)
+        output_size, nb_params, R, S = util.get_conv_output_size_and_nb_param(input_size, layer_type3, kernel_size, stride, out_channels=out_channels)
         layers.append(tuple((layer_type3, input_size, output_size, stride, nb_params, R, S)))
         if key == 0:
             options["stride"] = 1
@@ -58,7 +58,7 @@ blocks_args = [
 
 # Stem part
 layer_type, kernel_size, stride, out_channels = "conv2d", 3, (2, 2), 32
-output_size, nb_params, R, S = torch_util.get_conv_output_size_and_nb_param(input_size, layer_type, kernel_size, stride, out_channels=out_channels)
+output_size, nb_params, R, S = util.get_conv_output_size_and_nb_param(input_size, layer_type, kernel_size, stride, out_channels=out_channels)
 profiled_layers.append(tuple((layer_type, input_size, output_size, stride, nb_params, R, S)))
 
 # Backbone part
@@ -70,11 +70,11 @@ for blocks_string in blocks_args:
 # Head part
 
 layer_type, input_size, kernel_size, stride, out_channels = "conv2d", output_size, 1, (1, 1), 1280
-output_size, nb_params, R, S = torch_util.get_conv_output_size_and_nb_param(input_size, layer_type, kernel_size, stride, out_channels=out_channels)
+output_size, nb_params, R, S = util.get_conv_output_size_and_nb_param(input_size, layer_type, kernel_size, stride, out_channels=out_channels)
 profiled_layers += [tuple((layer_type, input_size, output_size, stride, nb_params, R, S))]
 
 layer_type, input_size, in_features, out_features = "linear", (1280, ), 1280, num_classes
-output_size, nb_params, R, S = torch_util.get_linear_output_size_and_nb_param(in_features, out_features)
+output_size, nb_params, R, S = util.get_linear_output_size_and_nb_param(in_features, out_features)
 profiled_layers += [tuple((layer_type, input_size, output_size, stride, nb_params, R, S))]
 
 summary = OrderedDict()
