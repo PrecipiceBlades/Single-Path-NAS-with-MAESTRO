@@ -1,11 +1,4 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
-import tensorflow as tf
 import numpy as np
-from tensorflow.python.keras import backend as K
-from tensorflow.python.keras.engine.base_layer import InputSpec
 import torch
 from torch.autograd import Variable
 import torch.nn as nn
@@ -15,11 +8,10 @@ import util
 import collections
 import six
 from six.moves import xrange
-# import tensorflow as tf
 import json
 
 # dstamoulis: definition of masked layer (DepthwiseConv2DMasked)
-from pytorch_version.superkernel import *
+from superkernel import *
 
 GlobalParams = collections.namedtuple('GlobalParams', [
     'batch_norm_momentum', 'batch_norm_epsilon', 'dropout_rate',
@@ -119,7 +111,6 @@ class MBConvBlock(object):
         self._block_args = block_args
         self._batch_norm_momentum = global_params.batch_norm_momentum
         self._batch_norm_epsilon = global_params.batch_norm_epsilon
-        self._channel_axis = 1
         self._spatial_dims = [2, 3]
         self.has_se = (self._block_args.se_ratio is not None) and (
             self._block_args.se_ratio > 0) and (self._block_args.se_ratio <= 1)
@@ -135,7 +126,6 @@ class MBConvBlock(object):
         """
         Builds MBConv block according to the arguments.
         """
-        
 #       filters: Integer, the dimensionality of the output space
 #           (i.e. the number of output filters in the convolution).
         filters = self._block_args.input_filters * self._block_args.expand_ratio
@@ -143,17 +133,18 @@ class MBConvBlock(object):
         
         if self._block_args.expand_ratio != 1:
           # Expansion phase:
-            self._expand_conv = nn.Conv2d(
-                in_channels=in_channels,  # Not Sure ???
-                out_channels=filters,
+            self._expand_conv = util.Conv2d(
+                nin=in_channels,
+                nout=filters,
+                layer_type="conv2d",
                 kernel_size=1,
                 stride=1,
-                padding=util.get_same_padding(1, 1),
-                bias=False)
+                padding="same",
+                use_bias=False)
             conv_kernel_initializer(self._expand_conv.weight)
             
             self._bn0 = nn.BatchNorm2d(
-                num_features=filters,    # No sure ??? 
+                num_features=filters,
                 eps=self._batch_norm_epsilon, 
                 momentum=self._batch_norm_momentum)
             
@@ -161,11 +152,13 @@ class MBConvBlock(object):
         if self._search_space is None:  #  for "default" layers
 
           # Default depth-wise convolution phase:
-            self._depthwise_conv = DepthwiseConv2D(
-                nin=filters,             #  Not Sure ???
+            self._depthwise_conv = util.Conv2D(
+                nin=filters,
+                nout=1,
+                layer_type="depthwise",
                 kernel_size=kernel_size,
                 stride=self._block_args.strides,
-                padding='same',
+                padding="same",
                 use_bias=False)
             conv_kernel_initializer(self._depthwise_conv.weight)
 
@@ -186,7 +179,7 @@ class MBConvBlock(object):
             raise NotImplementedError('DepthConv not defined for %s' % self._search_space)
 
         self._bn1 = nn.BatchNorm2d(
-            num_features=filters,  # No sure ??? 
+            num_features=filters,
             eps=self._batch_norm_epsilon, 
             momentum=self._batch_norm_momentum)
 
@@ -215,17 +208,18 @@ class MBConvBlock(object):
 
         # Output phase:
         
-        self._project_conv = nn.Conv2d(
-            in_channels=filters,                           # Not Sure ???
-            out_channels=self._block_args.output_filters,
+        self._project_conv = util.Conv2d(
+            nin=filters,
+            nout=self._block_args.output_filters,
+            layer_type="conv2d",
             kernel_size=1,
             stride=1,
-            padding=util.get_same_padding(1, 1),
-            bias=True)
+            padding="same",
+            use_bias=False)
         conv_kernel_initializer(self._project_conv.weight)
         
         self._bn2 = nn.BatchNorm2d(
-            num_features=self._block_args.output_filter,    # No sure ??? 
+            num_features=self._block_args.output_filter,
             eps=self._batch_norm_epsilon, 
             momentum=self._batch_norm_momentum)
 
@@ -240,8 +234,6 @@ class MBConvBlock(object):
         """
         se_tensor = torch.mean(input_tensor, axis=self._spatial_dims, keepdims=True)
         se_tensor = self._se_expand(nn.ReLU(self._se_reduce(se_tensor)))
-        tf.logging.info('Built Squeeze and Excitation with tensor shape: %s' %
-                        (se_tensor.shape))                  # TODO
         return torch.sigmoid(se_tensor) * input_tensor
 
     def forward(self, inputs, runtime):
@@ -277,7 +269,7 @@ class MBConvBlock(object):
                 x = torch.add(x, inputs)
         return x, runtime
     
-class SinglePathSuperNet(tf.keras.Model):
+class SinglePathSuperNet(nn.Module):
     """
     class implements tf.keras.Model for SinglePath Supernet with superkernels
     More details: Fig.2 -- Single-Path NAS: https://arxiv.org/abs/(TBD)
@@ -304,7 +296,6 @@ class SinglePathSuperNet(tf.keras.Model):
 
         self._search_space = global_params.search_space
 
-        tf.logging.info('Runtime model parsed')
         assert self._search_space == 'mnasnet' # currently supported one
         lutmodel_filename = "./pixel1_runtime_model.json"
         with open(lutmodel_filename, 'r') as f:
@@ -342,32 +333,34 @@ class SinglePathSuperNet(tf.keras.Model):
 
         batch_norm_momentum = self._global_params.batch_norm_momentum
         batch_norm_epsilon = self._global_params.batch_norm_epsilon
-        channel_axis = 1
     
         filters = round_filters(32, self._global_params)
+        
         # Stem part.
-        self._conv_stem = nn.Conv2d(
-            in_channels=in_channels,
-            out_channels=filters,
+        self._conv_stem = util.Conv2d(
+            nin=in_channels,
+            nout=filters,
+            layer_type="conv2d",
             kernel_size=3,
             stride=2,
-            padding=util.get_same_padding(3, 2),
-            bias=True)
+            padding="same",
+            use_bias=False)
         conv_kernel_initializer(self._conv_stem.weight)
         
         self._bn0 = nn.BatchNorm2d(
-            num_features=round_filters(32, self._global_params), 
+            num_features=filters, 
             eps=batch_norm_epsilon, 
             momentum=batch_norm_momentum)
         
         # Head part.
-        self._conv_head = nn.Conv2d(
-            in_channels=filters,
-            out_channels=1280,
+        self._conv_head = util.Conv2d( 
+            nin=self._blocks_args[-1].output_filters,
+            nout=1280,
+            layer_type="conv2d",
             kernel_size=1,
             stride=1,
-            padding=util.get_same_padding(1, 1),
-            bias=False)
+            padding="same",
+            use_bias=False)
         conv_kernel_initializer(self._conv_head.weight)
         
         self._bn1 = nn.BatchNorm2d(
