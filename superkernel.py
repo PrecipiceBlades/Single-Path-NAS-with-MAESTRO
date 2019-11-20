@@ -1,7 +1,4 @@
-import tensorflow as tf
 import numpy as np
-from tensorflow.python.keras import backend as K
-from tensorflow.python.keras.engine.base_layer import InputSpec
 import torch
 from torch.autograd import Variable
 import torch.nn as nn
@@ -14,18 +11,6 @@ def Indicator(x):
     """
     x = Variable(torch.tensor(x), requires_grad=True)
     return (torch.FloatTensor([x >= 0]) - torch.sigmoid(x)).detach() + torch.sigmoid(x)
-
-class DepthwiseConv2D(nn.Module):
-    def __init__(self, nin, kernel_size, stride=1, dilation=1, padding="same", use_bias=False):
-        super(DepthwiseConv2D, self).__init__()
-        if padding == "same":
-            padding = util.get_same_padding(kernel_size=kernel_size, stride=stride, dilation=dilation) # "same" padding
-        self.depthwise = nn.Conv2d(in_channels=nin, out_channels=nin, kernel_size=kernel_size, stride=stride, \
-                                   dilation=dilation, bias=use_bias, padding=padding, groups=nin)
-
-    def forward(self, x):
-        out = self.depthwise(x)
-        return out
 
 class DepthwiseConv2DMasked(nn.Module):
     def __init__(self, 
@@ -72,14 +57,24 @@ class DepthwiseConv2DMasked(nn.Module):
         weight format: [input_channel, 1, kernel_height, kernel_width]
         """
         input_channels = input_shape[1]
-        self.model = DepthwiseConv2D(nin=input_channels, kernel_size=self.kernel_size, stride=self.stride, \
-                            dilation=self.dilation, padding=self.padding, use_bias=self.use_bias)
+        
+        # Depthwise layer
+        self.model = util.Conv2D(                
+                nin=input_channels,
+                nout=1,
+                layer_type="depthwise",
+                kernel_size=self.kernel_size,
+                stride=self.stride,
+                dilation=self.dilation,
+                padding=self.padding,
+                padding="same",
+                use_bias=self.use_bias)
         
         self.model.weight = nn.Parameter(data=torch.Tensor(input_channels, 1, self.kernel_size, self.kernel_size), requires_grad=True)
         # TODO: Not intialize the weights yet 
         depthwise_initializer(self.model.weight)
         
-        if use_bias:
+        if self.use_bias:
             self.model.bias = nn.Parameter(data=torch.Tensor(input_channels), requires_grad=True)
             depthwise_initializer(self.model.bias)
         
