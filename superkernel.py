@@ -67,7 +67,6 @@ class DepthwiseConv2DMasked(nn.Module):
                 stride=self.stride,
                 dilation=self.dilation,
                 padding=self.padding,
-                padding="same",
                 use_bias=self.use_bias)
         
         self.model.weight = nn.Parameter(data=torch.Tensor(input_channels, 1, self.kernel_size, self.kernel_size), requires_grad=True)
