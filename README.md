@@ -3,6 +3,16 @@ Pytorch version of codebase for the paper single-path-nas
 
 Use Test.py to test Pytorch & Tensorflow equivalance on Depthwise Convolution 
 
+# Experiments
+
+Configuration:
+
+L1 cache: 98
+
+L2 Cache: 5408
+
+Frequency: 2.2G Hz
+
 | Model                | Params       | Multi&Add | Cycles | Estimated Runtime |
 |----------------------|--------------|-----------|--------|-------------------|
 | MnasNet-A1           | 3.94M(3.9M)  | 312M      | 19.2M  | 8.72s             |
