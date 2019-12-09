@@ -62,7 +62,7 @@ Supports "MnasNet-A1", "MobileNet-V2", "MobileNet-V3(large)", "MobileNet-V3(smal
 
 # How to profile self-defined models:
 
-Use main.py, specify the block arguments by yourself as well as stem / head architecture.  
+Use main.py, specify the block arguments by yourself as well as stem/head architecture.  
 
 # Experiments:
 
