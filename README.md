@@ -1,6 +1,8 @@
-# maestro - main version
+# maestro
 A stable version of MAESTRO. (H. Kwon et al., Understanding Reuse, Performance, and Hardware Cost of DNN
 Dataflows: A Data-Centric Approach, MICRO 2019)
+
+
 
 # Package Dependences
 C++ compiler (g++)
@@ -10,6 +12,8 @@ SCONS build system (scons)
 Boost libarary (libboost-all-dev)
 
 Python 2.7 or later
+
+Pytorch  
 
 # How to compile the code
 > scons --clean
