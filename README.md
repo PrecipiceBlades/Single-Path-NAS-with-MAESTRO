@@ -1,8 +1,6 @@
-# maestro
+# MAESTRO
 A stable version of MAESTRO. (H. Kwon et al., Understanding Reuse, Performance, and Hardware Cost of DNN
 Dataflows: A Data-Centric Approach, MICRO 2019)
-
-
 
 # Package Dependences
 C++ compiler (g++)
@@ -65,6 +63,26 @@ Supports "MnasNet-A1", "MobileNet-V2", "MobileNet-V3(large)", "MobileNet-V3(smal
 # How to profile self-defined models:
 
 Use main.py, specify the block arguments by yourself as well as stem / head architecture.  
+
+# Experiments:
+
+Hardware configuration:
+
+L1 cache: 128
+
+L2 Cache: 5408
+
+Frequency: 2.2G Hz
+
+| Model                | Params        | Multi&Add | Cycles | Estimated Runtime |
+|----------------------|---------------|-----------|--------|-------------------|
+| MnasNet-A1           | 3887038(3.9M) | 330M      | 25.3M  | 11.5s             |
+| MobileNet-V2         | 3504872(3.5M) | 320M      | 24.0M  | 10.9s             |
+| MobileNet-V3(large)  | 5476416(5.5M) | 233M      | 19.8M  | 9.0s              |
+| MobileNet-V3(small)  | 2534656(2.5M) | 65M       | 6.39M  | 2.9s              |
+| ProxylessNet(mobile) | 4080512(4.1M) | 336M      | 26.2M  | 11.9s             |
+| SinglepathNAS        | 4414216(4.4M) | 360M      | 29.8M  | 13.5s             |
+
 
 # Contributors
 Ruitao Yi (ruitaoy@andrew.cmu.edu)
