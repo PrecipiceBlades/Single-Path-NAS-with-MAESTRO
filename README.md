@@ -7,7 +7,7 @@ Use Test.py to test Pytorch & Tensorflow equivalance on Depthwise Convolution
 
 Configuration:
 
-L1 cache: 98
+L1 cache: 128
 
 L2 Cache: 5408
 
