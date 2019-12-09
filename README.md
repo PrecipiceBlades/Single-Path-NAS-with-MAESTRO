@@ -50,7 +50,7 @@ Create a DFSL file under "data/DFSL_description" and point the file using --DFSL
 
 For syntax of the DFSL file, please refer to other DFSL files in data/DFSL_description.
 
-NB: you must put the dataflow in the "data/DFSL_description" file
+### NB: you must put the dataflow under the "data/DFSL_description" directory
 
 # How to profile default models:
 
