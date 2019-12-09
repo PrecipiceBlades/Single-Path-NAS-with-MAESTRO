@@ -12,6 +12,7 @@ Boost libarary (libboost-all-dev)
 Python 2.7 or later
 
 # How to compile the code
+> scons --clean
 > scons
 
 # How to run the program
@@ -26,7 +27,7 @@ Change the contents of "run.sh" For parameters other than listed below, please i
 
 --print_log_file=true/false : If set true, MAESTRO prints out a log file that contains various information of detailed computation patterns to "log.txt"
 
---DFSL_file='data/DFSL_description/Resnet50_dla.m' : Specify the target dataflow and layer description file
+--DFSL_file='data/DFSL_description/MnasNet-A1_rs.m' : Specify the target dataflow and layer description file
 
 --noc_bw=64 : NoC bandwidth
 
@@ -47,37 +48,25 @@ Create a DFSL file under "data/DFSL_description" and point the file using --DFSL
 
 For syntax of the DFSL file, please refer to other DFSL files in data/DFSL_description.
 
-# How to convert Pytorch model to MAESTRO dataflow
-> cd data/pytorch_example
+NB: you must put the dataflow in the "data/DFSL_description" file
 
-Use [torchvision.models](https://pytorch.org/docs/stable/torchvision/models.html)
-## Run with default setting
-> python torch_to_maestro.py
-## Run MAESTRO with the converted dataflow file
-Change the contents of "run.sh"
+# How to profile default models:
 
---DFSL_file='data/pytorch_example/out/out.m'
+cd data/pytorch_example
 
-Run MAESTRO
+python main.py --model "MnasNet-A1"
 
-> ./run.sh
-### Change the input arguement
-> python torch_to_maestro.py --input_size 3,224,224 --model mobilenet_v2 --dataflow os --outfile out.m 
+Supports "MnasNet-A1", "MobileNet-V2", "MobileNet-V3(large)", "MobileNet-V3(small)", "ProxylessNet(mobile)" and "SinglepathNAS".
 
---input_size: the input image size of the first layer
+# How to profile self-defined models:
 
---model: the model name from torchvision.models
-
---dataflow: the dataflow for each layer, choose from "os, ws, rs, dla"
-
---outfile: the MAESTRO dataflow output file name
-
-
-
+Use main.py, specify the block arguments by yourself as well as stem / head architecture.  
 
 # Contributors
-Hyoukjun Kwon (hyoukjun@gatech.edu): Main developer, developed core framework and functionalities
+Ruitao Yi (ruitaoy@andrew.cmu.edu)
 
-Prasanth Chatarasi (cprasanth@gatech.edu): Improved APIs
+Hyoukjun Kwon (hyoukjun@gatech.edu)
 
-Felix (Sheng-Chun) Kao (felix@gatech.edu): Implemented Pytorch front-end
+Prasanth Chatarasi (cprasanth@gatech.edu)
+
+Felix (Sheng-Chun) Kao (felix@gatech.edu)
