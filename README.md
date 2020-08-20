@@ -1,4 +1,4 @@
-# MAESTRO
+# Single Path NAS with MAESTRO
 A stable version of MAESTRO. (H. Kwon et al., Understanding Reuse, Performance, and Hardware Cost of DNN
 Dataflows: A Data-Centric Approach, MICRO 2019)
 
