@@ -1,6 +1,6 @@
 # Single Path NAS with MAESTRO
-A stable version of MAESTRO. (H. Kwon et al., Understanding Reuse, Performance, and Hardware Cost of DNN
-Dataflows: A Data-Centric Approach, MICRO 2019)
+Built on a stable version of MAESTRO. (H. Kwon et al., Understanding Reuse, Performance, and Hardware Cost of DNN
+Dataflows: A Data-Centric Approach, MICRO 2019). Given cache sizes and hardware accelerator, you can estimate the inference latency & energy consumption of your input CNN. Now the package supports conv2d blocks, inverted-residual blocks, and squeeze-and-excitation blocks. 
 
 # Package Dependences
 C++ compiler (g++)
